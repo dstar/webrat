@@ -92,7 +92,7 @@ For example:
       @default_headers.dup.merge(@custom_headers.dup)
     end
 
-    def absolute_href(href_url)
+    def canonicalize_url(href_url)
       @current_url ||= "http://www.example.com/" # @current_url can't be blank, or things break
       # Case one: relative url
       if href_url !~ %r{^https?://} && (href_url !~ /^\//)
@@ -110,7 +110,7 @@ For example:
       h = headers
       h['HTTP_REFERER'] = @current_url if @current_url
 
-      url = absolute_href(url)
+      url = canonicalize_url(url)
       debug_log "REQUESTING PAGE: #{http_method.to_s.upcase} #{url} with #{data.inspect} and HTTP headers #{h.inspect}"
       if h.empty?
         send "#{http_method}", url, data || {}
@@ -253,7 +253,7 @@ For example:
   private
 
     def response_location
-      absolute_href(response.headers["Location"])
+      canonicalize_url(response.headers["Location"])
     end
 
     def current_host
