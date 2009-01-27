@@ -74,7 +74,7 @@ For example:
     def doc_root #:nodoc:
       nil
     end
-    
+
     def header(key, value)
       @custom_headers[key] = value
     end
@@ -92,10 +92,25 @@ For example:
       @default_headers.dup.merge(@custom_headers.dup)
     end
 
+    def absolute_href(href_url)
+      @current_url ||= "http://www.example.com/" # @current_url can't be blank, or things break
+      # Case one: relative url
+      if href_url !~ %r{^https?://} && (href_url !~ /^\//)
+        "#{@current_url.chomp('/')}/#{href_url}"
+      # Case two: absolute url without host
+      elsif href_url =~ /^\//
+        "http://#{current_host}#{href_url}"
+      # Case three: absolute url with scheme and host.
+      else
+        href_url
+      end
+    end
+
     def request_page(url, http_method, data) #:nodoc:
       h = headers
       h['HTTP_REFERER'] = @current_url if @current_url
 
+      url = absolute_href(url)
       debug_log "REQUESTING PAGE: #{http_method.to_s.upcase} #{url} with #{data.inspect} and HTTP headers #{h.inspect}"
       if h.empty?
         send "#{http_method}", url, data || {}
@@ -132,7 +147,7 @@ For example:
       response_location_host_domain = response_location_host.split('.')[-2..-1].join('.') rescue response_location_host
       current_host_domain == response_location_host_domain
     end
-    
+
     #easy helper to pull out where we were redirected to
     def redirected_to
       redirect? ? response_location : nil
@@ -238,7 +253,7 @@ For example:
   private
 
     def response_location
-      response.headers["Location"]
+      absolute_href(response.headers["Location"])
     end
 
     def current_host
@@ -254,6 +269,6 @@ For example:
       @_scopes      = nil
       @_page_scope  = nil
     end
-    
+
   end
 end
