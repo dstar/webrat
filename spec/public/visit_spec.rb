@@ -10,7 +10,7 @@ describe "visit" do
   end
 
   it "should use get" do
-    webrat_session.should_receive(:get).with("/", {})
+    webrat_session.should_receive(:get).with("http://www.example.com/", {})
     visit("/")
   end
 
@@ -37,7 +37,7 @@ describe "visit" do
 
     visit("/oldurl")
 
-    current_url.should == "/newurl"
+    current_url.should == "http://www.example.com/newurl"
   end
 
   it "should not follow external redirects" do
@@ -45,7 +45,7 @@ describe "visit" do
 
     visit("/oldurl")
 
-    current_url.should == "/oldurl"
+    current_url.should == "http://www.example.com/oldurl"
   end
 end
 
@@ -60,7 +60,7 @@ describe "visit with referer" do
   end
 
   it "should use get with referer header" do
-    webrat_session.should_receive(:get).with("/", {}, {"HTTP_REFERER" => "/old_url"})
+    webrat_session.should_receive(:get).with("http://www.example.com/", {}, {"HTTP_REFERER" => "/old_url"})
     visit("/")
   end
 

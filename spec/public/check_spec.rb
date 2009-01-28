@@ -20,10 +20,10 @@ describe "check" do
         </form>
       </html>
     HTML
-    
+
     lambda { check "remember_me" }.should raise_error(Webrat::NotFoundError)
   end
-  
+
   it "should check rails style checkboxes" do
     with_html <<-HTML
       <html>
@@ -35,12 +35,12 @@ describe "check" do
       </form>
       </html>
     HTML
-    
-    webrat_session.should_receive(:get).with("/login", "user" => {"tos" => "1"})
+
+    webrat_session.should_receive(:get).with("http://www.example.com/login", "user" => {"tos" => "1"})
     check "TOS"
     click_button
   end
-  
+
   it "should result in the value on being posted if not specified" do
     with_html <<-HTML
       <html>
@@ -50,12 +50,12 @@ describe "check" do
         </form>
       </html>
     HTML
-    
-    webrat_session.should_receive(:post).with("/login", "remember_me" => "on")
+
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "remember_me" => "on")
     check "remember_me"
     click_button
   end
-  
+
   it "should fail if the checkbox is disabled" do
     with_html <<-HTML
       <html>
@@ -65,10 +65,10 @@ describe "check" do
         </form>
       </html>
     HTML
-    
+
     lambda { check "remember_me" }.should raise_error(Webrat::DisabledFieldError)
   end
-  
+
   it "should result in a custom value being posted" do
     with_html <<-HTML
       <html>
@@ -78,8 +78,8 @@ describe "check" do
         </form>
       </html>
     HTML
-    
-    webrat_session.should_receive(:post).with("/login", "remember_me" => "yes")
+
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "remember_me" => "yes")
     check "remember_me"
     click_button
   end
@@ -105,10 +105,10 @@ describe "uncheck" do
       </form>
       </html>
     HTML
-    
+
     lambda { uncheck "remember_me" }.should raise_error(Webrat::NotFoundError)
   end
-  
+
   it "should fail if the checkbox is disabled" do
     with_html <<-HTML
       <html>
@@ -120,7 +120,7 @@ describe "uncheck" do
     HTML
     lambda { uncheck "remember_me" }.should raise_error(Webrat::DisabledFieldError)
   end
-  
+
   it "should uncheck rails style checkboxes" do
     with_html <<-HTML
       <html>
@@ -132,7 +132,7 @@ describe "uncheck" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:get).with("/login", "user" => {"tos" => "0"})
+    webrat_session.should_receive(:get).with("http://www.example.com/login", "user" => {"tos" => "0"})
     check "TOS"
     uncheck "TOS"
     click_button
@@ -147,7 +147,7 @@ describe "uncheck" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", {})
+    webrat_session.should_receive(:post).with("http://www.example.com/login", {})
     uncheck "remember_me"
     click_button
   end

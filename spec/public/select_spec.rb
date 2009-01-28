@@ -9,11 +9,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    
+
     lambda { select "February", :from => "month" }.should raise_error(Webrat::NotFoundError,
-      "The 'February' option was not found in the \"month\" select box") 
+      "The 'February' option was not found in the \"month\" select box")
   end
-  
+
   it "should fail if option not found in list specified by element name" do
     with_html <<-HTML
       <html>
@@ -26,7 +26,7 @@ describe "select" do
 
     lambda { select "February", :from => "year" }.should raise_error(Webrat::NotFoundError)
   end
-  
+
   it "should fail if specified list not found" do
     with_html <<-HTML
       <html>
@@ -39,7 +39,7 @@ describe "select" do
     lambda { select "February", :from => "year" }.should raise_error(Webrat::NotFoundError)
   end
 
-  
+
   it "should fail if the select is disabled" do
     with_html <<-HTML
       <html>
@@ -52,7 +52,7 @@ describe "select" do
 
     lambda { select "January", :from => "month" }.should raise_error(Webrat::DisabledFieldError)
   end
-  
+
   it "should send value from option" do
     with_html <<-HTML
       <html>
@@ -62,7 +62,7 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "month" => "1")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "month" => "1")
     select "January", :from => "month"
     click_button
   end
@@ -76,7 +76,7 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "encoded" => "A & B")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "encoded" => "A & B")
     select "Encoded", :from => "encoded"
     click_button
   end
@@ -90,10 +90,10 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", 'month' => '')
+    webrat_session.should_receive(:post).with("http://www.example.com/login", 'month' => '')
     click_button
   end
-  
+
   it "should work without specifying the field name or label" do
     with_html <<-HTML
       <html>
@@ -103,11 +103,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "month" => "1")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "month" => "1")
     select "January"
     click_button
   end
-  
+
   it "should send value from option in list specified by name" do
     with_html <<-HTML
       <html>
@@ -118,11 +118,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "start_month" => "s1", "end_month" => "e1")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "start_month" => "s1", "end_month" => "e1")
     select "January", :from => "end_month"
     click_button
   end
-  
+
   it "should send value from option in list specified by label" do
     with_html <<-HTML
       <html>
@@ -135,11 +135,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "start_month" => "s1", "end_month" => "e1")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "start_month" => "s1", "end_month" => "e1")
     select "January", :from => "End Month"
     click_button
   end
-  
+
   it "should use option text if no value" do
     with_html <<-HTML
       <html>
@@ -149,7 +149,7 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "month" => "January")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "month" => "January")
     select "January", :from => "month"
     click_button
   end
@@ -163,11 +163,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "month" => "January")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "month" => "January")
     select /jan/i
     click_button
   end
-  
+
   it "should fail if no option matching the regexp exists" do
     with_html <<-HTML
       <html>
@@ -177,7 +177,7 @@ describe "select" do
       </form>
       </html>
     HTML
-    
+
     lambda {
       select /feb/i
     }.should raise_error(Webrat::NotFoundError)
@@ -195,11 +195,11 @@ describe "select" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", "start_month" => "s1", "end_month" => "e1")
+    webrat_session.should_receive(:post).with("http://www.example.com/login", "start_month" => "s1", "end_month" => "e1")
     select /jan/i, :from => "End Month"
     click_button
   end
-  
+
   it "should properly handle submitting HTML entities in select values" do
     spec = lambda do
       with_html <<-HTML
@@ -210,17 +210,17 @@ describe "select" do
         </form>
         </html>
       HTML
-      webrat_session.should_receive(:post).with("/login", "month" => "Peanut butter & jelly")
+      webrat_session.should_receive(:post).with("http://www.example.com/login", "month" => "Peanut butter & jelly")
       click_button
     end
-    
+
     if Webrat.on_java?
       spec.call
     else
       pending("needs bug fix", &spec)
     end
   end
-  
+
   it "should properly handle locating with HTML entities in select values" do
     spec = lambda do
       with_html <<-HTML
@@ -231,12 +231,12 @@ describe "select" do
         </form>
         </html>
       HTML
-      
+
       lambda {
         select "Peanut butter & jelly"
       }.should_not raise_error(Webrat::NotFoundError)
     end
-    
+
     if Webrat.on_java?
       spec.call
     else

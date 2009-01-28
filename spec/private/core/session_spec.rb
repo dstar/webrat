@@ -119,7 +119,7 @@ describe Webrat::Session do
 
       webrat_session.request_page("/oldurl", :get, {})
 
-      webrat_session.current_url.should == "/newurl"
+      webrat_session.current_url.should == "http://www.example.com/newurl"
     end
 
     it "should now follow external redirects" do
@@ -127,7 +127,7 @@ describe Webrat::Session do
 
       webrat_session.request_page("/oldurl", :get, {})
 
-      webrat_session.current_url.should == "/oldurl"
+      webrat_session.current_url.should == "http://www.example.com/oldurl"
     end
   end
 
@@ -146,7 +146,7 @@ describe Webrat::Session do
       webrat_session.redirect?.should be_false
     end
   end
-  
+
   describe "#internal_redirect?" do
     before(:each) do
       webrat_session = Webrat::Session.new
@@ -158,19 +158,19 @@ describe Webrat::Session do
       webrat_session.stub!(:response_location => "http://example.com")
       webrat_session.internal_redirect?.should be_true
     end
-    
+
     it "should return true if the last response was a redirect and the hosts are the same but the subdomains are different" do
       webrat_session.stub!(:redirect?         => true)
       webrat_session.stub!(:current_url       => "http://example.com")
       webrat_session.stub!(:response_location => "http://myName.example.com")
       webrat_session.internal_redirect?.should be_true
     end
-    
+
     it "should return false if the last response was not a redirect" do
       webrat_session.stub!(:redirect? => false)
       webrat_session.internal_redirect?.should be_false
     end
-    
+
     it "should return false if the last response was a redirect but the host of the current_url doesn't matches that of the response location" do
       webrat_session.stub!(:redirect?         => true)
       webrat_session.stub!(:current_url       => "http://example.com")
@@ -185,23 +185,23 @@ describe Webrat::Session do
       webrat_session.internal_redirect?.should be_false
     end
   end
-  
+
   describe "#redirected_to" do
     before(:each) do
       webrat_session = Webrat::Session.new
     end
-    
+
     it "should return nil if not redirected" do
       webrat_session.stub!(:redirect? => false)
       webrat_session.redirected_to.should be_nil
     end
-    
+
     it "should return the response_location if redirected" do
       webrat_session.stub!(:redirect?         => true)
       webrat_session.stub!(:response_location => "http://www.example.com")
       webrat_session.redirected_to.should == "http://www.example.com"
     end
-  
+
   end
-  
+
 end
