@@ -25,15 +25,55 @@ module Webrat
     ::Selenium::RemoteControl::RemoteControl.new("0.0.0.0", Webrat.configuration.selenium_server_port, 5).stop unless Webrat.configuration.selenium_server_address
   end
 
-  def self.start_app_server #:nodoc:
-    pid_file = prepare_pid_file("#{RAILS_ROOT}/tmp/pids", "mongrel_selenium.pid")
-    system("mongrel_rails start -d --chdir=#{RAILS_ROOT} --port=#{Webrat.configuration.application_port} --environment=#{Webrat.configuration.application_environment} --pid #{pid_file} &")
+  def self.pid_file
+    if File.exists?('config.ru')
+      prepare_pid_file(Dir.pwd, 'rack.pid')
+    else
+      prepare_pid_file("#{RAILS_ROOT}/tmp/pids", "mongrel_selenium.pid")
+    end
+  end
+  # Start the appserver for the underlying framework to test
+  #
+  # Sinatra: requires a config.ru in the root of your sinatra app to use this
+  # Merb: Attempts to use bin/merb and falls back to the system merb
+  # Rails: Calls mongrel_rails to startup the appserver
+  def self.start_app_server
+    case Webrat.configuration.application_framework
+    when :sinatra
+      fork do
+        File.open('rack.pid', 'w') { |fp| fp.write Process.pid }
+        exec 'rackup', File.expand_path(Dir.pwd + '/config.ru'), '-p', Webrat.configuration.application_port.to_s
+      end
+    when :merb
+      cmd = 'merb'
+      if File.exist?('bin/merb')
+        cmd = 'bin/merb'
+      end
+      system("#{cmd} -d -p #{Webrat.configuration.application_port} -e #{Webrat.configuration.application_environment}")
+    else # rails
+      system("mongrel_rails start -d --chdir='#{RAILS_ROOT}' --port=#{Webrat.configuration.application_port} --environment=#{Webrat.configuration.application_environment} --pid #{pid_file} &")
+    end
     TCPSocket.wait_for_service :host => Webrat.configuration.application_address, :port => Webrat.configuration.application_port.to_i
   end
 
-  def self.stop_app_server #:nodoc:
-    pid_file = File.expand_path(RAILS_ROOT + "/tmp/pids/mongrel_selenium.pid")
-    system "mongrel_rails stop -c #{RAILS_ROOT} --pid #{pid_file}"
+  # Stop the appserver for the underlying framework under test
+  #
+  # Sinatra: Reads and kills the pid from the pid file created on startup
+  # Merb: Reads and kills the pid from the pid file created on startup
+  # Rails: Calls mongrel_rails stop to kill the appserver
+  def self.stop_app_server 
+    case Webrat.configuration.application_framework
+    when :sinatra
+      pid = File.read('rack.pid')
+      system("kill -9 #{pid}")
+      FileUtils.rm_f 'rack.pid'
+    when :merb
+      pid = File.read("log/merb.#{Webrat.configuration.application_port}.pid")
+      system("kill -9 #{pid}")
+      FileUtils.rm_f "log/merb.#{Webrat.configuration.application_port}.pid"
+    else # rails
+      system "mongrel_rails stop -c #{RAILS_ROOT} --pid #{pid_file}"
+    end
   end
 
   def self.prepare_pid_file(file_path, pid_file_name)
@@ -60,11 +100,25 @@ module Webrat
   #     selenium.dragdrop("id=photo_123", "+350, 0")
   #   end
   #
-  # == Auto-starting of the mongrel and java server
+  # == Choosing the underlying framework to test
+  #
+  # Webrat assumes you're using rails by default but it can also work with sinatra
+  # and merb.  To take advantage of this you can use the configuration block to
+  # set the application_framework variable.
+  #   require "webrat"
+  #
+  #   Webrat.configure do |config|
+  #     config.mode = :selenium
+  #     config.application_port = 4567
+  #     config.application_framework = :sinatra  # could also be :merb
+  #   end
+  #
+  # == Auto-starting of the appserver and java server
   #
   # Webrat will automatically start the Selenium Java server process and an instance
   # of Mongrel when a test is run. The Mongrel will run in the "selenium" environment
-  # instead of "test", so ensure you've got that defined, and will run on port 3001.
+  # instead of "test", so ensure you've got that defined, and will run on port
+  # Webrat.configuration.application_port.
   #
   # == Waiting
   #
@@ -89,11 +143,12 @@ module Webrat
     end
   end
 end
-
-module ActionController #:nodoc:
-  IntegrationTest.class_eval do
-    include Webrat::Methods
-    include Webrat::Selenium::Methods
-    include Webrat::Selenium::Matchers
+if defined?(ActionController::IntegrationTest)
+  module ActionController #:nodoc:
+    IntegrationTest.class_eval do
+      include Webrat::Methods
+      include Webrat::Selenium::Methods
+      include Webrat::Selenium::Matchers
+    end
   end
 end

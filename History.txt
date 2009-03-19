@@ -1,4 +1,46 @@
-== Git
+== 0.4.3 / 2009-03-17
+
+* Minor enhancements
+
+  * Support Rails 2.3. Use Rack::Utils to parse params (Matthew Ford)
+  * Support for "modular" Sinatra app style (Simon Rozet)
+  * Initial Merb and Sinatra compatibility for Selenium mode (Corey Donohoe)
+  * When faced with a label with no for attribute, that contains a hidden field
+    and another field, as can be the case in Rails 2.3's checkbox view,
+    webrat now locates the non-hidden field. (Luke Melia) 
+  * Add application_framework config for Selenium mode to determine how to
+    start and stop the app server (Corey Donohoe)
+
+* Bug fixes
+
+  * Fix following of absolute redirect URL in Sinatra (Simon Rozet)
+
+== 0.4.2 / 2009-02-24
+
+* Major enhancements
+
+  * Significant improvements to have_selector. It now supports specifying
+    attributes in a hash and :count and :content options. See
+    have_selector_spec.rb for more.
+  * Add the same functionality mentioned above to have_xpath
+    
+* Minor enhancements
+
+  * Squeeze extra whitespace out of failures messages from contain
+    matcher
+  * Detect infinite redirects and raise a Webrat::InfiniteRedirectError
+    (Daniel Lucraft)
+
+* Bug fixes
+
+  * Properly quote single and double quotes strings in XPath
+  * Fix warning caused by Nokogiri deprecating CSS::Parser.parse
+    (Aaron Patterson)
+  * Accept do/end blocks in matchers. [#157] (Peter Jaros)
+  * Quote --chdir option to mongrel_rails to support RAILS_ROOTs with spaces
+    (T.J. VanSlyke)
+
+== 0.4.1 / 2009-01-31
 
 * Minor enhancements
 
@@ -6,6 +48,8 @@
   * Update query param parsing to work with latest Edge Rails
   * Added #redirected_to method to easily check where an external redirect was
     redirected to (Adam Greene)
+  * Recognize input tags with type button (Lena Herrmann)
+  * Add uncheck method to Selenium mode (Lee Bankewitz)
     
 * Bug fixes
 
@@ -19,7 +63,8 @@
     (Noah Davis)
   * Create tmp/pids directory if directory does not exist. (Amos King and Mike Gaffney)  
   * Setup deprecated writers for the selenium_environment= and selenium_port= config
-  * Ensure the previous pages params aren't passed through redirect
+  * Ensure the previous pages params aren't passed through redirect (Daniel Lucraft and
+    Bryan Helmkamp)
   * Labels should only search for fields within the current scope (Kyle Hargraves)
 
 == 0.4.0 / 2009-01-18

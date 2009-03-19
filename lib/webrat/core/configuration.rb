@@ -39,6 +39,9 @@ module Webrat
     webrat_deprecate :selenium_port, :application_port
     webrat_deprecate :selenium_port=, :application_port=
 
+    # Which underlying app framework we're testing with selenium
+    attr_accessor :application_framework
+
     # Which server the application is running on for selenium testing? Defaults to localhost
     attr_accessor :application_address
 
@@ -51,13 +54,19 @@ module Webrat
     # Set the key that Selenium uses to determine the browser running. Default *firefox
     attr_accessor :selenium_browser_key
 
+    # How many redirects to the same URL should be halted as an infinite redirect
+    # loop? Defaults to 10
+    attr_accessor :infinite_redirect_limit
+    
     def initialize # :nodoc:
       self.open_error_files = true
       self.parse_with_nokogiri = !Webrat.on_java?
       self.application_environment = :selenium
       self.application_port = 3001
       self.application_address = 'localhost'
+      self.application_framework = 'rails'
       self.selenium_server_port = 4444
+      self.infinite_redirect_limit = 10
       self.selenium_browser_key = '*firefox'
     end
 
