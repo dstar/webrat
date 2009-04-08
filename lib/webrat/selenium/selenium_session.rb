@@ -1,4 +1,6 @@
 require "webrat/core/save_and_open_page"
+require "webrat/selenium/selenium_rc_server"
+require "webrat/selenium/application_server"
 
 module Webrat
   class TimeoutError < WebratError
@@ -179,6 +181,7 @@ module Webrat
     end
 
   protected
+  
     def silence_stream(stream)
       old_stream = stream.dup
       stream.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
@@ -189,16 +192,11 @@ module Webrat
     end
 
     def setup #:nodoc:
-      silence_stream(STDOUT) do
-        silence_stream(STDERR) do
-          Webrat.start_selenium_server
-          Webrat.start_app_server
-        end
-      end
+      Webrat::Selenium::SeleniumRCServer.boot
+      Webrat::Selenium::ApplicationServer.boot
 
       create_browser
       $browser.start
-      teardown_at_exit
 
       extend_selenium
       define_location_strategies
@@ -210,14 +208,10 @@ module Webrat
       $browser = ::Selenium::Client::Driver.new(Webrat.configuration.selenium_server_address || "localhost",
           Webrat.configuration.selenium_server_port, Webrat.configuration.selenium_browser_key, "http://#{Webrat.configuration.application_address}:#{Webrat.configuration.application_port}")
       $browser.set_speed(0) unless Webrat.configuration.selenium_server_address
-    end
-
-    def teardown_at_exit #:nodoc:
+      
       at_exit do
         silence_stream(STDOUT) do
           $browser.stop
-          Webrat.stop_app_server
-          Webrat.stop_selenium_server
         end
       end
     end

@@ -61,10 +61,10 @@ module Webrat
     def initialize # :nodoc:
       self.open_error_files = true
       self.parse_with_nokogiri = !Webrat.on_java?
-      self.application_environment = :selenium
+      self.application_environment = :test
       self.application_port = 3001
       self.application_address = 'localhost'
-      self.application_framework = 'rails'
+      self.application_framework = :rails
       self.selenium_server_port = 4444
       self.infinite_redirect_limit = 10
       self.selenium_browser_key = '*firefox'

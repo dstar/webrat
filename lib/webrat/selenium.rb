@@ -3,84 +3,9 @@ gem "selenium-client", ">=1.2.14"
 require "selenium/client"
 require "webrat/selenium/selenium_session"
 require "webrat/selenium/matchers"
+require "webrat/core_extensions/tcp_socket"
 
 module Webrat
-
-  def self.with_selenium_server #:nodoc:
-    start_selenium_server
-    yield
-    stop_selenium_server
-  end
-
-  def self.start_selenium_server #:nodoc:
-    unless Webrat.configuration.selenium_server_address
-      remote_control = ::Selenium::RemoteControl::RemoteControl.new("0.0.0.0", Webrat.configuration.selenium_server_port, 5)
-      remote_control.jar_file = File.expand_path(__FILE__ + "../../../../vendor/selenium-server.jar")
-      remote_control.start :background => true
-    end
-    TCPSocket.wait_for_service :host => (Webrat.configuration.selenium_server_address || "0.0.0.0"), :port => Webrat.configuration.selenium_server_port
-  end
-
-  def self.stop_selenium_server #:nodoc:
-    ::Selenium::RemoteControl::RemoteControl.new("0.0.0.0", Webrat.configuration.selenium_server_port, 5).stop unless Webrat.configuration.selenium_server_address
-  end
-
-  def self.pid_file
-    if File.exists?('config.ru')
-      prepare_pid_file(Dir.pwd, 'rack.pid')
-    else
-      prepare_pid_file("#{RAILS_ROOT}/tmp/pids", "mongrel_selenium.pid")
-    end
-  end
-  # Start the appserver for the underlying framework to test
-  #
-  # Sinatra: requires a config.ru in the root of your sinatra app to use this
-  # Merb: Attempts to use bin/merb and falls back to the system merb
-  # Rails: Calls mongrel_rails to startup the appserver
-  def self.start_app_server
-    case Webrat.configuration.application_framework
-    when :sinatra
-      fork do
-        File.open('rack.pid', 'w') { |fp| fp.write Process.pid }
-        exec 'rackup', File.expand_path(Dir.pwd + '/config.ru'), '-p', Webrat.configuration.application_port.to_s
-      end
-    when :merb
-      cmd = 'merb'
-      if File.exist?('bin/merb')
-        cmd = 'bin/merb'
-      end
-      system("#{cmd} -d -p #{Webrat.configuration.application_port} -e #{Webrat.configuration.application_environment}")
-    else # rails
-      system("mongrel_rails start -d --chdir='#{RAILS_ROOT}' --port=#{Webrat.configuration.application_port} --environment=#{Webrat.configuration.application_environment} --pid #{pid_file} &")
-    end
-    TCPSocket.wait_for_service :host => Webrat.configuration.application_address, :port => Webrat.configuration.application_port.to_i
-  end
-
-  # Stop the appserver for the underlying framework under test
-  #
-  # Sinatra: Reads and kills the pid from the pid file created on startup
-  # Merb: Reads and kills the pid from the pid file created on startup
-  # Rails: Calls mongrel_rails stop to kill the appserver
-  def self.stop_app_server 
-    case Webrat.configuration.application_framework
-    when :sinatra
-      pid = File.read('rack.pid')
-      system("kill -9 #{pid}")
-      FileUtils.rm_f 'rack.pid'
-    when :merb
-      pid = File.read("log/merb.#{Webrat.configuration.application_port}.pid")
-      system("kill -9 #{pid}")
-      FileUtils.rm_f "log/merb.#{Webrat.configuration.application_port}.pid"
-    else # rails
-      system "mongrel_rails stop -c #{RAILS_ROOT} --pid #{pid_file}"
-    end
-  end
-
-  def self.prepare_pid_file(file_path, pid_file_name)
-    FileUtils.mkdir_p File.expand_path(file_path)
-    File.expand_path("#{file_path}/#{pid_file_name}")
-  end
-
   # To use Webrat's Selenium support, you'll need the selenium-client gem installed.
   # Activate it with (for example, in your <tt>env.rb</tt>):
   #
@@ -143,6 +68,7 @@ module Webrat
     end
   end
 end
+
 if defined?(ActionController::IntegrationTest)
   module ActionController #:nodoc:
     IntegrationTest.class_eval do
