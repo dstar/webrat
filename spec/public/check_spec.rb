@@ -151,7 +151,7 @@ describe "uncheck" do
     uncheck "remember_me"
     click_button
   end
-  
+
   it "should work with checkboxes with the same name" do
     with_html <<-HTML
       <html>
@@ -164,12 +164,12 @@ describe "uncheck" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/login", {"options" => ["1", "2"]})
+    webrat_session.should_receive(:post).with("http://www.example.com/login", {"options" => ["1", "2"]})
     check 'Option 1'
     check 'Option 2'
     click_button
   end
-  
+
   it "should uncheck rails style checkboxes nested inside a label" do
     with_html <<-HTML
       <html>
@@ -183,9 +183,9 @@ describe "uncheck" do
       </form>
       </html>
     HTML
-    webrat_session.should_receive(:get).with("/login", "user" => {"tos" => "0"})
+    webrat_session.should_receive(:get).with("http://www.example.com/login", "user" => {"tos" => "0"})
     uncheck "TOS"
     click_button
   end
-  
+
 end

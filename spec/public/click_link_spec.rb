@@ -193,7 +193,7 @@ describe "click_link" do
         return false;">Post</a></h2>
       </html>
     HTML
-    webrat_session.should_receive(:post).with("/posts", {})
+    webrat_session.should_receive(:post).with("http://www.example.com/posts", {})
     click_link "Post"
   end
 
