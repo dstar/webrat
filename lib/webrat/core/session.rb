@@ -11,7 +11,7 @@ module Webrat
 
   class InfiniteRedirectError < WebratError
   end
-  
+
   def self.session_class
     case Webrat.configuration.mode
     when :rails
@@ -144,13 +144,13 @@ For example:
 
       return response
     end
-    
+
     def check_for_infinite_redirects
       if current_url == response_location
         @_identical_redirect_count ||= 0
         @_identical_redirect_count += 1
       end
-      
+
       if infinite_redirect_limit_exceeded?
         raise InfiniteRedirectError.new("#{Webrat.configuration.infinite_redirect_limit} redirects to the same URL (#{current_url.inspect})")
       end
@@ -160,7 +160,7 @@ For example:
        Webrat.configuration.infinite_redirect_limit &&
        (@_identical_redirect_count || 0) > Webrat.configuration.infinite_redirect_limit
     end
-    
+
     def success_code? #:nodoc:
       (200..499).include?(response_code)
     end
