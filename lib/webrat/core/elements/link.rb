@@ -40,8 +40,6 @@ module Webrat
       Webrat::XML.attribute(@element, "href")
     end
 
-    end
-
     def authenticity_token
       return unless onclick && onclick.include?("s.setAttribute('name', 'authenticity_token');") &&
         onclick =~ /s\.setAttribute\('value', '([a-f0-9]{40})'\);/
