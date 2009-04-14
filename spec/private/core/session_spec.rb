@@ -263,5 +263,4 @@ describe Webrat::Session do
     end
 
   end
-
 end
